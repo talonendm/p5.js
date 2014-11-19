@@ -45,16 +45,35 @@ define(function (require) {
    */
   p5.prototype.loadJSON = function(path, callback) {
     var ret = [];
-    var t = path.indexOf('http') === -1 ? 'json' : 'jsonp';
-    reqwest({url: path, type: t, crossOrigin: true})
-      .then(function(resp) {
+    var t = 'json';
+    var callbackString = '';
+
+    // parse json or jsonp
+    if ( (path.indexOf('jsonp') > -1 ) || (path.indexOf('callback') > -1) ) {
+      t = 'jsonp';
+      if (typeof(callback)!== 'undefined' && path.indexOf('callback') === -1) {
+        callbackString = '&callback="' + callback + '"';
+      } else {
+        callback = path.slice( [path.indexOf('callback') + 9] );
+      }
+    }
+
+    reqwest({
+      url: path + callbackString,
+      type: t,
+      crossOrigin: true,
+      jsonp: 'callback',
+      jsonpCallback: callback,
+      success: function(resp) {
         for (var k in resp) {
           ret[k] = resp[k];
         }
-        if (typeof callback !== 'undefined') {
+        if (typeof callback !== 'undefined' && typeof callback !== 'string') {
           callback(ret);
         }
-      });
+      }
+    });
+
     return ret;
   };
 

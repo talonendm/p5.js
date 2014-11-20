@@ -29,7 +29,7 @@
   ],
   "dependencies": {
     "grunt-update-json": "^0.2.1",
-    "reqwest": "~0.9.6"
+    "reqwest": "~1.1.5"
   },
   "files": [
     "license.txt",

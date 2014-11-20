@@ -48,27 +48,27 @@ define(function (require) {
     var t = 'json';
     var callbackString = '';
 
-    // parse json or jsonp
+    // is it jsonp?
     if ( (path.indexOf('jsonp') > -1 ) || (path.indexOf('callback') > -1) ) {
       t = 'jsonp';
-      if (typeof(callback)!== 'undefined' && path.indexOf('callback') === -1) {
-        callbackString = '&callback="' + callback + '"';
-      } else {
-        callback = path.slice( [path.indexOf('callback') + 9] );
+      // if there is a callback in the path but no argument
+      if (typeof(callback) === 'undefined') {
+        callbackString = path.slice( [path.indexOf('callback') + 9] );
+        callback = window[callbackString];
       }
     }
 
     reqwest({
-      url: path + callbackString,
+      url: path,
       type: t,
       crossOrigin: true,
       jsonp: 'callback',
-      jsonpCallback: callback,
+      jsonpCallback: callbackString,
       success: function(resp) {
         for (var k in resp) {
           ret[k] = resp[k];
         }
-        if (typeof callback !== 'undefined' && typeof callback !== 'string') {
+        if (typeof(callback) !== 'undefined' && typeof(callback) !== 'string'){
           callback(ret);
         }
       }

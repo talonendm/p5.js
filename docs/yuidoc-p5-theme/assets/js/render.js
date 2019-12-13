@@ -203,9 +203,9 @@ var renderCode = function(sel) {
             '})();'
           ].join('\n'));
         }
-        // If we haven't found any functions we'll assume it's
-        // just a setup body.
-        if (!_found.length) {
+
+        // If we haven't found any functions, mock the setup function
+        if (!_found.setup && _found.length <= 1) {
           p.setup = function() {
             p.createCanvas(100, 100);
             p.background(200);
@@ -214,17 +214,35 @@ var renderCode = function(sel) {
             }
           }
         } else {
-          // Actually runs the code to get functions into scope.
+          const origPreload = p.preload;
+          if (origPreload) {
+            delete p.preload;
+          }
+
           with (p) {
             eval(runnable);
           }
+
           _found.forEach(function(name) {
-            p[name] = eval(name);
+            if (name === 'preload') {
+              try {
+                p[name] = eval(name);
+              } catch(e) {
+                p[name] = function () {};
+                eval('var preload = function(){}');
+                eval('preload')
+              }
+            } else {
+              p[name] = eval(name);
+            }
           });
+
           p.setup = p.setup || function() {
             p.createCanvas(100, 100);
             p.background(200);
           }
+
+          p.preload = p.preload || function() {};
         }
       };
     }
